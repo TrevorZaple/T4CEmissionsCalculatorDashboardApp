@@ -1,0 +1,32 @@
+type,image
+CAR,Car.png
+ELECTRIC BIKE,Bike.png
+ATV,Atv .png
+MOTORCYCLE,Motorcycle .png
+SNOWMOBILE,Snowmobile .png
+AIRPLANE,Plane.png
+FERRY,Ferry.png
+RAIL,Lrt .png
+BUS,City bus.png
+REG GAS,fuel-petrol-01.PNG
+PREM GAS,fuel-petrol-01.PNG
+DIESEL,fuel-petrol-01.PNG
+ELECTRIC,fuel-electro-01.PNG
+MINIVAN,Minivan .png
+PASSENGER VAN,Passenger van.png
+TRUCK,Pickup.png
+SCHOOL BUS,School bus .png
+SUV,SUV .png
+SNOWMOBILE2,Snow.png
+HFC,fuel-hydro-01.PNG
+PLUGIN,fuel-electro-01.PNG
+BIODIESEL,fuel-bio-01.PNG
+CNG,fuel-petrol-01.PNG
+HYBRID,fuel-electro-01.PNG
+E85,fuel-bio-01.PNG
+MINIBUS,Minibus.png
+HFO,fuel-petrol-01.PNG
+RNG,fuel-bio-01.PNG
+SAF,fuel-bio-01.PNG
+HH,fuel-hydro-01.PNG
+CITYBUS,City bus.png

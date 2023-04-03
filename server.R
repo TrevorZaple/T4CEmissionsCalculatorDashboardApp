@@ -1,42 +1,41 @@
-data <- read.csv("c:/working/e4t/dashapp/e4tdata2.csv")
-imageList <- read.csv("c:/working/e4t/dashapp/imageList.csv")
+data <- read.csv("Database.csv")
+imageList <- read.csv("imageList.csv")
 library(ggplot2)
-co2 <- function(x, y, z) {
-  bloop <- subset(data, data$VEHICLE_TYPE == x & data$FUEL_TYPE == y)
-  lkm <- bloop$L.KM
-  emish <- lkm * z
-  emishmash <- (emish * 2.663)
-  emissvalue <<- emishmash
-  if (length(bloop$FUEL_TYPE) == 1) {
-    msg <- paste("You have emitted", emishmash, "kg of CO2")
-    print(msg)
-    
-  }
-  else {
-    msg <- paste("The selected vehicle does not use the selected fuel type")
-    print(msg)
-  }
-  
-  
-}
+
 routeData <- tibble::tibble(trip = numeric(), vehicle = character(), distance = numeric(), fuel = character(), emissions = numeric())
 
 #routeData <- tibble::tibble(trip = NA, vehicle = NA, distance = NA, fuel = NA, emissions = NA)
 
 server <- function(input, output) {
+  source('server.R', local = TRUE)
   #selected <- reactiveVal(rep(FALSE, nrow(routeData)))
+  
+  co2 <- function(x, y, z) {
+    bloop <- subset(data, data$VEHICLE_TYPE == x & data$FUEL_TYPE == y)
+    lkm <- bloop$L.KM
+    emish <- lkm * z
+    emishmash <- (emish * 2.663)
+    emissvalue <- emishmash
+    msg <- paste("You have emitted", emishmash, "kg of CO2")
+    print(msg)
+    return(emishmash)
+    
+    
+    
+  }
   
   observeEvent(input$frame, {
     newDat <- tibble::tibble(trip = (nrow(routeData) + 1), vehicle = input$VEHICLE_TYPE, fuel = input$FUEL_TYPE,
-                             distance = input$distance, emissions = emissvalue)
+                             distance = input$distance, emissions = co2(input$VEHICLE_TYPE, input$FUEL_TYPE, input$distance)) #emissvalue
     
     routeData <<- rbind(routeData, newDat)
     print(routeData)
   })
 
   observeEvent(input$plotz, {
+    
     newDat <- tibble::tibble(trip = (nrow(routeData) + 1), vehicle = input$VEHICLE_TYPE, fuel = input$FUEL_TYPE,
-                             distance = input$distance, emissions = emissvalue)
+                             distance = input$distance, emissions = co2(input$VEHICLE_TYPE, input$FUEL_TYPE, input$distance)) #emissvalue
     
     routeData <<- rbind(routeData, newDat)
     print(routeData)
@@ -61,7 +60,11 @@ server <- function(input, output) {
     )
   })
   
-  
+  observeEvent(input$memclear, {
+    routeData <<- tibble::tibble(trip = numeric(), vehicle = character(), distance = numeric(), fuel = character(), emissions = numeric())
+    
+    
+  })
   
   output$tripz <- renderTable(
     routeData, striped = T,  bordered = T, width = "auto"
@@ -77,7 +80,7 @@ server <- function(input, output) {
   output$getImageGas <- renderImage({
     idata <- subset(imageList, imageList$type == input$FUEL_TYPE)
     filename <- paste0("./public/", idata$image)
-    return(list(src = filename, contentType = "image/png", alt = "animage", height = 122, width = 300))
+    return(list(src = filename, contentType = "image/png", alt = "animage", height = 150, width = 150))
   }, deleteFile = FALSE)
 
 output$fuelMsg <- renderText({
@@ -93,6 +96,108 @@ output$distanceMsg <- renderText({
 })
 
 output$returnMsg <- renderText({
-  co2(input$VEHICLE_TYPE, input$FUEL_TYPE, input$distance)
+  paste("You have emitted", co2(input$VEHICLE_TYPE, input$FUEL_TYPE, input$distance), "kg of CO2")
 })
+
+output$fuelSelect <- renderUI({
+  if(input$VEHICLE_TYPE == "CAR") {
+    fuel_Selections <- radioButtons("FUEL_TYPE", "Fuel Type", c("Regular Gasoline" = "REG GAS",
+                                                                              "Electric" = "ELECTRIC",
+                                                                              "Hybrid" = "HYBRID",
+                                                                "Diesel" = "DIESEL",
+                                                                "Ethanol" = "E85",
+                                                                "Hydrogen Fuel Cell" = "HFC",
+                                                                "Biodiesel (B20)" = "BIODIESEL"))
+  }
+  if(input$VEHICLE_TYPE == "MINIVAN") {
+    fuel_Selections <- radioButtons("FUEL_TYPE", "Fuel Type", c("Regular Gasoline" = "REG GAS",
+                                              "Hybrid" = "HYBRID",
+                                              "Ethanol" = "E85",
+                                              "Plugin" = "PLUGIN",
+                                              "Hydrogen Fuel Cell" = "HFC"))
+  }
+  
+  if(input$VEHICLE_TYPE == "TRUCK") {
+    fuel_Selections <- radioButtons("FUEL_TYPE", "Fuel Type", c("Regular Gasoline" = "REG GAS",
+                                              "Diesel" = "DIESEL",
+                                              "Ethanol" = "E85",
+                                              "Hydrogen Fuel Cell" = "HFC",
+                                              "Electric" = "ELECTRIC",
+                                              "Plugin" = "PLUGIN",
+                                              "Hydrogen Fuel Cell" = "HFC",
+                                              "Biodiesel (B20)" = "BIODIESEL"))
+  }
+  if(input$VEHICLE_TYPE == "SUV") {
+    fuel_Selections <- radioButtons("FUEL_TYPE", "Fuel Type", c("Regular Gasoline" = "REG GAS",
+                                                                 "Diesel" = "DIESEL",
+                                                                 "Hybrid" = "HYBRID",
+                                                                "Hydrogen Fuel Cell" = "HFC",
+                                                                "Plugin" = "PLUGIN",
+                                                                "Electric" = "ELECTRIC",
+                                                                "Ethanol" = "E85",
+                                                                "Biodiesel (B20)" = "BIODIESEL"))
+  }
+  if(input$VEHICLE_TYPE == "PASSENGER VAN") {
+    fuel_Selections <- radioButtons("FUEL_TYPE", "Fuel Type", c("Regular Gasoline" = "REG GAS",
+                                                                "Ethanol" = "E85",
+                                                                "Plugin" = "PLUGIN",
+                                                                "Hydrogen Fuel Cell" = "HFC"))
+  }
+  if(input$VEHICLE_TYPE == "SCHOOL BUS") {
+    fuel_Selections <- radioButtons("FUEL_TYPE", "Fuel Type", c("Diesel" = "DIESEL",
+                                                                 "Compressed Natural Gas" = "CNG",
+                                                                "Plugin" = "PLUGIN",
+                                                                "Biodiesel (B20)" = "BIODIESEL"))
+  }
+  if(input$VEHICLE_TYPE == "CITYBUS") {
+    fuel_Selections <- radioButtons("FUEL_TYPE", "Fuel Type", c("Diesel" = "DIESEL",
+                                                                 "Biodiesel (B20)" = "BIODIESEL",
+                                                                 "Hybrid" = "HYBRID",
+                                                                "Compressed Natural Gas" = "CNG"))
+  }
+  if(input$VEHICLE_TYPE == "MINIBUS") {
+    fuel_Selections <- radioButtons("FUEL_TYPE", "Fuel Type", c("Diesel" = "DIESEL",
+                                                                 "Electric" = "ELECTRIC",
+                                                                "Hydrogen Fuel Cell" = "HFC",
+                                                                "Biodiesel (B20)" = "BIODIESEL"))
+  }
+  if(input$VEHICLE_TYPE == "RAIL") {
+    fuel_Selections <- radioButtons("FUEL_TYPE", "Fuel Type", c("Electric" = "ELECTRIC"))
+  }
+  if(input$VEHICLE_TYPE == "AIRPLANE") {
+    fuel_Selections <- radioButtons("FUEL_TYPE", "Fuel Type", c("Aviation Jet Fuel" = "REG GAS",
+                                                                  "Electric" = "ELECTRIC",
+                                                                "Sustainable Aircraft Fuel" = "SAF",
+                                                                "Hybrid-Hydrogen" = "HH"))
+  }
+  if(input$VEHICLE_TYPE == "SNOWMOBILE2") {
+    fuel_Selections <- radioButtons("FUEL_TYPE", "Fuel Type", c("Regular Gas" = "REG GAS",
+                                                                  "Plugin" = "PLUGIN",
+                                                                  "Hyrdogen Fuel Cell" = "HFC"))
+  }
+  if(input$VEHICLE_TYPE == "SNOWMOBILE") {
+    fuel_Selections <- radioButtons("FUEL_TYPE", "Fuel Type", c("Regular Gas" = "REG GAS",
+                                                                  "Plugin" = "PLUGIN",
+                                                                  "Hydrogen Fuel Cell" = "HFC"))
+  }
+  if(input$VEHICLE_TYPE == "MOTORCYCLE") {
+    fuel_Selections <- radioButtons("FUEL_TYPE", "Fuel Type", c("Regular Gas" = "REG GAS",
+                                                                  "Plugin" = "PLUGIN",
+                                                                  "Hydrogen Fuel Cell" = "HFC"))
+  }
+  if(input$VEHICLE_TYPE == "ELECTRIC BIKE") {
+    fuel_Selections <- radioButtons("FUEL_TYPE", "Fuel Type", c("Electric" = "ELECTRIC"))
+  }
+  if(input$VEHICLE_TYPE == "ATV") {
+    fuel_Selections <- radioButtons("FUEL_TYPE", "Fuel Type", c("Regular Gasoline" = "REG GAS",
+                                               "Plugin" = "PLUGIN",
+                                               "Hydrogen Fuel Cell" = "HFC"))
+  }
+  if(input$VEHICLE_TYPE == "FERRY") {
+    fuel_Selections <- radioButtons("FUEL_TYPE", "Fuel Type", c("Electric" = "ELECTRIC", "Heavy Fuel Oil" = "HFO", "Renewable Natural Gas" = "RNG"))
+  }
+  fuel_Selections
+})
+
+
 }
